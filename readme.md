@@ -8,12 +8,16 @@ Lazy Deploy is a tool which helps you publish multiple Gitlab branches by buildi
 
 If you are lazy or forgetful like me, you end up wasting a bunch of time in this process. So, I've written this CLI tool to automate this task.
 
-# Installation / Build
+# Installation
 
+Download a binary for your operating system in the releases page or check the "Building from source" steps.
+
+# Building from source 
+
+- Make sure you have installed Go.
 - Clone this project.
-- Build or run with Go.
-    - Place it somewhere in FS, I'd be honored if you include us in your `$PATH`.
+- `cd` into the project directory and run `go build`.
 
 # Usage
 
-Please check the help documentation by running the program without any arguments: `Lazy-Deploy`
+Please check the help documentation by running the program without any arguments: `lazy-deploy`
