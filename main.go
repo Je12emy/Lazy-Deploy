@@ -32,12 +32,14 @@ func main() {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Unexpected HOME variable: We where unable to determine your HOME directory.")
+		show_help_docs()
 		os.Exit(1)
 	}
 	path := filepath.Join(home, "lazy-deploy.toml")
 	content, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Not found error: Config was not found.")
+		show_help_docs()
 		os.Exit(1)
 	}
 
@@ -76,7 +78,7 @@ USAGE:
 
 CONFIG FILE:
 
-	Lazy Deploy will read a configuration file written in named "config.toml" for keeping a reccord of each project and some
+	Lazy Deploy will read a configuration file written in named "lazy-deploy.toml" for keeping a reccord of each project and some
 	other settings like your authentication token and your Gitlab instance's URL. Let's break down the config's content.
 
 	There are 2 top level settings in your configuration.
