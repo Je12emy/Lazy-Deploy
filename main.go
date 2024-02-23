@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -18,6 +19,7 @@ type Config struct {
 
 type Project struct {
 	Id      uint
+	Path    string
 	Depends []string `toml:"depends_on"`
 	Ref     string
 }
@@ -96,6 +98,24 @@ CONFIG FILE:
 
 	Now, we will define our project network. Here you will define each project you want to manage and which other projects does it depend on to be deployed.
 		- id: Your project's ID, you will find this settings under Settings > General > Project ID.
+		- path: If you are not able to retrieve your project's ID, you can provide a namespaced path to the project.
+
+		  Consider the following example:
+
+		      - A repository whose URL is: https://gitlab.com/test-user/test_project
+
+		  A plausible configuration for this repository could be.
+
+			[Project.Test]
+			# Id = 123
+			Path = "test-user/test_project"
+			ref = "main"
+			depends_on = []
+
+		  In this case I did not provide an Id, you can include it, but *ID will take precedence over Path when building your request for creating
+		  the new branch*. Also, the Gitlab API recommends that this path is URL encoded, we take care of this, so you can declare the path
+		  as you normally would.
+
 		- ref: The "base" branch which you project will use for creating new branches.
 		- depends_on: This is an array of projects, this means that when "X" project is deployed, all the projects it depends on will also be deployed.
 
@@ -120,6 +140,11 @@ CONFIG FILE:
 			id = 321
 			ref = "main"
 			depends_on = []
+
+			[Project.ServiceC]
+			Path = "test-username/test_project"
+			ref = "main"
+			depends_on = []
 		
 	SEE ALSO:
 		- Tom's Obvious Minimal Language's Official Page: https://toml.io/en/
@@ -128,12 +153,23 @@ CONFIG FILE:
 	`)
 }
 
+func build_new_branch_endpoint(conf Config, project Project, branch string) string {
+	if project.Id == 0 {
+		urlEncodedPath := url.PathEscape(project.Path)
+		return fmt.Sprintf("projects/%s/repository/branches?branch=%s&ref=%s", urlEncodedPath, branch, project.Ref)
+	}
+	return fmt.Sprintf("projects/%d/repository/branches?branch=%s&ref=%s", project.Id, branch, project.Ref)
+}
+
 func create_branh(branch string, conf Config, project Project) {
 	apiEndpoint := fmt.Sprintf("%s/api/v4", conf.Base_url)
-	newBranchEndpoint := fmt.Sprintf("%s/projects/%d/repository/branches?branch=%s&ref=%s", apiEndpoint, project.Id, branch, project.Ref)
-	newBranchRequest, _ := http.NewRequest("POST", newBranchEndpoint, nil)
+	newBranchEndpoint := build_new_branch_endpoint(conf, project, branch)
+	requestEndpoint := fmt.Sprintf("%s/%s", apiEndpoint, newBranchEndpoint)
+
+	newBranchRequest, _ := http.NewRequest("POST", requestEndpoint, nil)
 	newBranchRequest.Header.Add(PRIVATE_TOKEN_HEADER_NAME, conf.Token)
 	response, _ := http.DefaultClient.Do(newBranchRequest)
+
 	if response.StatusCode == 201 {
 		defer response.Body.Close()
 		decoder := json.NewDecoder(response.Body)
@@ -142,6 +178,7 @@ func create_branh(branch string, conf Config, project Project) {
 		fmt.Printf("%s\n", branch.WebUrl)
 	} else {
 		fmt.Fprintf(os.Stderr, "An error has ocurred while creating your branch: %s\n", response.Status)
+		os.Exit(1)
 	}
 
 	if len(project.Depends) > 0 {
