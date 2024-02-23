@@ -62,6 +62,12 @@ func main() {
 	selectedProject, exists := conf.Project[projectName]
 	if exists {
 		create_branh(branch, conf, selectedProject)
+		os.Exit(0)
+	}
+	fmt.Fprintf(os.Stdout, "Project: \"%s\" was not found among your settings.\n", projectName)
+	fmt.Fprintf(os.Stdout, "Available options are:\n")
+	for k := range conf.Project {
+		fmt.Fprintf(os.Stdout, "- %s\n", k)
 	}
 }
 
