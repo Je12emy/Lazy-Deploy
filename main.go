@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -31,6 +32,11 @@ type BranchResponse struct {
 const PRIVATE_TOKEN_HEADER_NAME = "PRIVATE-TOKEN"
 
 func main() {
+	showHelp := flag.Bool("h", true, "Show help documentation")
+	if *showHelp {
+		show_help_docs()
+		os.Exit(0)
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Unexpected HOME variable: We where unable to determine your HOME directory.")
@@ -82,7 +88,11 @@ USAGE:
 
 	Simply invoke Lazy Deploy by specifying the project you want to deploy and a branch name.
 
-		lazy-deploy <Project-Name> <New-Branch-Name>
+		lazy-deploy <flags> <Project-Name> <New-Branch-Name>
+	
+	Available flags:
+
+		-h	Display help documentation
 
 CONFIG FILE:
 
