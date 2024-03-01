@@ -20,4 +20,4 @@ Download a binary for your operating system in the releases page or check the "B
 
 # Usage
 
-Please check the help documentation by running the program without any arguments: `lazy-deploy`
+Please check the help documentation by running the program without any arguments: `lazy-deploy -h`
